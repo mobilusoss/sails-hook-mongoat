@@ -55,31 +55,25 @@ module.exports = function (sails) {
       var model = sails.models[modelName];
       // check model adapter is sails-mongo by checking first connections adapter -- is this the best way?
       if (model && _.isFunction(model.getDatastore)) {
-        var collection = model.getDatastore().manager;
-        if (err) {
-          sails.log.error('Mongoat: Could not connect to MongoDB', modelName);
-          if (_.isFunction(next)) {
-            next(err);
-          }
-        } else {
-          if(_.isFunction(collection.ensureIndex)) {
-            collection.ensureIndex(fields, options, function (err) {
-              if (err) {
-                sails.log.error('Mongoat: Error creating index for model', modelName);
-                sails.log.error(fields);
-                sails.log.error(err);
-              } else {
-                sails.log.verbose('Mongoat: An index was created for model', modelName);
-              }
-              if (_.isFunction(next)) {
-                next(err);
-              }
-            });
-          } else {
-            sails.log.error('Mongoat: Native collection is not function', modelName);
+        var db = model.getDatastore().manager;
+        var collection = db.collection(modelName);
+        if(_.isFunction(collection.ensureIndex)) {
+          collection.ensureIndex(fields, options, function (err) {
+            if (err) {
+              sails.log.error('Mongoat: Error creating index for model', modelName);
+              sails.log.error(fields);
+              sails.log.error(err);
+            } else {
+              sails.log.verbose('Mongoat: An index was created for model', modelName, fields, options);
+            }
             if (_.isFunction(next)) {
               next(err);
             }
+          });
+        } else {
+          sails.log.error('Mongoat: Native collection is not function', modelName);
+          if (_.isFunction(next)) {
+            next(err);
           }
         }
       } else if (model && _.isFunction(model.native)) {
@@ -97,7 +91,7 @@ module.exports = function (sails) {
                   sails.log.error(fields);
                   sails.log.error(err);
                 } else {
-                  sails.log.verbose('Mongoat: An index was created for model', modelName);
+                  sails.log.verbose('Mongoat: An index was created for model', modelName, fields, options);
                 }
                 if (_.isFunction(next)) {
                   next(err);
