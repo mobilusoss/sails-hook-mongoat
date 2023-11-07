@@ -105,12 +105,21 @@ module.exports = function (sails) {
                   options
                 );
               } catch (err) {
-                sails.log.error(
-                  "Mongoat: Error creating index for model",
-                  modelName
-                );
-                sails.log.error(fields);
-                sails.log.error(err);
+                if (err.code === 85 || err.code === 86) {
+                  sails.log.warn(
+                    "Mongoat: Error creating index for model",
+                    modelName
+                  );
+                  sails.log.warn(fields);
+                  sails.log.warn(err);
+                } else {
+                  sails.log.error(
+                    "Mongoat: Error creating index for model",
+                    modelName
+                  );
+                  sails.log.error(fields);
+                  sails.log.error(err);
+                }
               }
               if (_.isFunction(next)) {
                 next(err);
